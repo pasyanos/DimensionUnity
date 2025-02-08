@@ -4,23 +4,29 @@ public class SpritePipelineController : MonoBehaviour
 {
     // todo: make this a list of cameras, corresponding to the number of perspective types
     [SerializeField] private Camera _sideRenderCamera;
-    // [SerializeField] private Texture2D _testTexture;
 
+    //private void Update()
+    //{
+    //    if (Input.GetKeyDown(KeyCode.Space))
+    //    {
+    //        RenderTexture rt = _sideRenderCamera.targetTexture;
 
-    private void Start() {}
+    //        RenderTextureToFileUtil.SaveRenderTextureToFile(rt, "Assets/TestRenderTexture", RenderTextureToFileUtil.SaveTextureFileFormat.PNG);
 
-    private void Update()
+    //        Debug.LogError("Wrote texture");
+    //    }
+    //}
+
+    public void RenderToSprite()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Debug.LogError("Hi");
+        string dateTimeStr = System.DateTime.Now.ToString("MM_dd_HH_mm");
+        string fileNameStr = "Assets/Output/TestRenderTexture_" + dateTimeStr;
 
-            // RenderTextureToFileUtil.SaveTextureToFile(_testTexture, "Assets/TestRender2");
-            RenderTexture rt = _sideRenderCamera.targetTexture;
+        RenderTexture rt = _sideRenderCamera.targetTexture;
 
-            RenderTextureToFileUtil.SaveRenderTextureToFile(rt, "Assets/TestRenderTexture", RenderTextureToFileUtil.SaveTextureFileFormat.PNG);
+        RenderTextureToFileUtil.SaveRenderTextureToFile(rt, fileNameStr, RenderTextureToFileUtil.SaveTextureFileFormat.PNG);
 
-            Debug.LogError("Wrote texture");
-        }
+        Debug.LogError("Wrote texture to file " + fileNameStr);
     }
 }
+
