@@ -5,22 +5,16 @@ public class SpritePipelineController : MonoBehaviour
     // todo: make this a list of cameras, corresponding to the number of perspective types
     [SerializeField] private Camera _sideRenderCamera;
 
-    //private void Update()
-    //{
-    //    if (Input.GetKeyDown(KeyCode.Space))
-    //    {
-    //        RenderTexture rt = _sideRenderCamera.targetTexture;
+    [SerializeField] private Vector2Int _outResolution = new Vector2Int(256, 256);
+    [SerializeField] private int _outDepth = 32;
 
-    //        RenderTextureToFileUtil.SaveRenderTextureToFile(rt, "Assets/TestRenderTexture", RenderTextureToFileUtil.SaveTextureFileFormat.PNG);
 
-    //        Debug.LogError("Wrote texture");
-    //    }
-    //}
+
 
     private void Awake()
     {
         // make a new rendertexture
-        RenderTexture sideCamOutput = new RenderTexture(64, 64, 32);
+        RenderTexture sideCamOutput = new RenderTexture(_outResolution.x, _outResolution.y, _outDepth);
         sideCamOutput.name = "SideCamOutput";
         sideCamOutput.enableRandomWrite = true;
         sideCamOutput.Create();
@@ -28,6 +22,11 @@ public class SpritePipelineController : MonoBehaviour
         // assign the rendertexture to the camera
         _sideRenderCamera.targetTexture = sideCamOutput;
 
+    }
+
+    private void Start()
+    {
+        _sideRenderCamera.gameObject.SetActive(true);
     }
 
     public void RenderToSprite()
