@@ -17,6 +17,19 @@ public class SpritePipelineController : MonoBehaviour
     //    }
     //}
 
+    private void Awake()
+    {
+        // make a new rendertexture
+        RenderTexture sideCamOutput = new RenderTexture(64, 64, 32);
+        sideCamOutput.name = "SideCamOutput";
+        sideCamOutput.enableRandomWrite = true;
+        sideCamOutput.Create();
+
+        // assign the rendertexture to the camera
+        _sideRenderCamera.targetTexture = sideCamOutput;
+
+    }
+
     public void RenderToSprite()
     {
         string dateTimeStr = System.DateTime.Now.ToString("MM_dd_HH_mm");
