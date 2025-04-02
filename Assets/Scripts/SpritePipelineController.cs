@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class SpritePipelineController : MonoBehaviour
 {
@@ -8,9 +9,9 @@ public class SpritePipelineController : MonoBehaviour
     [SerializeField] private Vector2Int _outResolution = new Vector2Int(256, 256);
     [SerializeField] private int _outDepth = 32;
 
+    [SerializeField] private List<AnimationClip> _targetClips;
 
-
-
+    #region Unity Callbacks
     private void Awake()
     {
         // make a new rendertexture
@@ -28,7 +29,9 @@ public class SpritePipelineController : MonoBehaviour
     {
         _sideRenderCamera.gameObject.SetActive(true);
     }
+    #endregion
 
+    #region Public-facing methods
     public void RenderToSprite()
     {
         string dateTimeStr = System.DateTime.Now.ToString("MM_dd_HH_mm");
@@ -40,5 +43,13 @@ public class SpritePipelineController : MonoBehaviour
 
         Debug.LogError("Wrote texture to file " + fileNameStr);
     }
+    #endregion
+
+    #region Private Helper Methods
+    private void CycleThroughKeyframes(AnimationClip clip)
+    {
+
+    }
+    #endregion
 }
 

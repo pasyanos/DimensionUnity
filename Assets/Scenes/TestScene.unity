@@ -1478,6 +1478,10 @@ MonoBehaviour:
   _sideRenderCamera: {fileID: 873466496}
   _outResolution: {x: 256, y: 256}
   _outDepth: 32
+  _targetClips:
+  - {fileID: 7400000, guid: 0bafac48b1090284da2048c29bc986ff, type: 2}
+  - {fileID: 7400000, guid: cf357b5409b4ad54a82c45d7684564e1, type: 2}
+  - {fileID: 7400000, guid: 5d190d8211c88a64281f7b90c69f3eb3, type: 2}
 --- !u!4 &1563881707
 Transform:
   m_ObjectHideFlags: 0
@@ -1512,7 +1516,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1847699902
 MonoBehaviour:
   m_ObjectHideFlags: 0
