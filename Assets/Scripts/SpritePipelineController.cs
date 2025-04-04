@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEditor;
 
 public class SpritePipelineController : MonoBehaviour
 {
@@ -39,16 +40,31 @@ public class SpritePipelineController : MonoBehaviour
 
         RenderTexture rt = _sideRenderCamera.targetTexture;
 
-        RenderTextureToFileUtil.SaveRenderTextureToFile(rt, fileNameStr, RenderTextureToFileUtil.SaveTextureFileFormat.PNG);
+        // if there are any clips, do the thing
+        if (_targetClips.Count > 0)
+        {
+            // todo: go through all clips. this can be replaced with a single for loop instead of an if.
+            CycleThroughKeyframes(_targetClips[0]);
+        }
 
-        Debug.LogError("Wrote texture to file " + fileNameStr);
+        // todo: comment back in
+        // RenderTextureToFileUtil.SaveRenderTextureToFile(rt, fileNameStr, RenderTextureToFileUtil.SaveTextureFileFormat.PNG);
+
+        // Debug.LogError("Wrote texture to file " + fileNameStr);
     }
     #endregion
 
     #region Private Helper Methods
     private void CycleThroughKeyframes(AnimationClip clip)
     {
+        // animation events
+        Debug.LogError("Animation events: " + clip.events.Length + " for clip " + clip.name + " at " + clip.length + " seconds.");
 
+        var keyframes = clip.events;
+        foreach (var frame in keyframes)
+        {
+            Debug.LogError("Keyframe: " + frame.functionName + " at " + frame.time + " seconds. " + frame.intParameter + " " + frame.floatParameter + " " + frame.objectReferenceParameter);
+        }
     }
     #endregion
 }
