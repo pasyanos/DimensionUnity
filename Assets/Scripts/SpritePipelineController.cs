@@ -1,14 +1,18 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEditor;
+using static RenderTextureToFileUtil;
 
 public class SpritePipelineController : MonoBehaviour
 {
     // todo: make this a list of cameras, corresponding to the number of perspective types
     [SerializeField] private Camera _sideRenderCamera;
 
+    [Header("Sprite Settings")]
     [SerializeField] private Vector2Int _outResolution = new Vector2Int(256, 256);
     [SerializeField] private int _outDepth = 32;
+    [SerializeField] private string _spriteName;
+    [SerializeField] private bool _appendDateTime = true;
 
     [Header("3D Animation Assets")]
     [SerializeField] private Animator _animatorComponent;
@@ -52,10 +56,10 @@ public class SpritePipelineController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            AdvanceKeyframe(_targetClips[0]);
-        }
+        //if (Input.GetKeyDown(KeyCode.RightArrow))
+        //{
+        //    AdvanceKeyframe(_targetClips[0]);
+        //}
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -67,8 +71,9 @@ public class SpritePipelineController : MonoBehaviour
     #region Public-facing methods
     public void RenderToSprite()
     {
-        string dateTimeStr = System.DateTime.Now.ToString("MM_dd_HH_mm");
-        string fileNameStr = "Assets/Output/TestRenderTexture_" + dateTimeStr;
+        string dateTimeStr = _appendDateTime ? 
+            "_" + System.DateTime.Now.ToString("MM_dd_HH_mm") : "";
+        string fileNameStr = "Assets/Output/" + _spriteName + dateTimeStr;
 
         RenderTexture rt = _sideRenderCamera.targetTexture;
 
@@ -86,8 +91,23 @@ public class SpritePipelineController : MonoBehaviour
         //}
 
         // todo: comment back in
-        RenderTextureToFileUtil.SaveRenderTextureToFile(rt, fileNameStr, RenderTextureToFileUtil.SaveTextureFileFormat.PNG);
-        Debug.LogError("Wrote texture to file " + fileNameStr);
+        // RenderTextureToFileUtil.SaveRenderTextureToFile(rt, fileNameStr, RenderTextureToFileUtil.SaveTextureFileFormat.PNG);
+        List<Texture2D> capturedFrames = new List<Texture2D>();
+        
+        for (int i = 0; i < _currentClipKeyframes; ++i)
+        {
+            capturedFrames.Add(WriteRenderTextureToTex2D(rt, SaveTextureFileFormat.PNG));
+            // Debug.LogFormat("Keframe index {0}", i);
+            AdvanceKeyframe(_targetClips[0]);
+        }
+
+        int counter = 0;
+        foreach(var tex in capturedFrames)
+        {
+            RenderTextureToFileUtil.SaveTexture2DToFile(tex, fileNameStr + string.Format("_{0}", counter), SaveTextureFileFormat.PNG);
+            counter++;
+        }
+        // Debug.Log("Wrote texture to file " + fileNameStr);
     }
     #endregion
 
@@ -133,6 +153,32 @@ public class SpritePipelineController : MonoBehaviour
     {
         _animatorComponent.Play(clip.name, 0, keyframeTime / clip.length);
         _animatorComponent.Update(0);
+    }
+
+    static private Texture2D WriteRenderTextureToTex2D(RenderTexture rt,
+        SaveTextureFileFormat fileFormat = SaveTextureFileFormat.PNG)
+    {
+        Texture2D tex;
+
+        if (fileFormat != SaveTextureFileFormat.EXR)
+            tex = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false, false);
+        else
+            tex = new Texture2D(rt.width, rt.height, TextureFormat.RGBAFloat, false, true);
+
+        var oldRt = RenderTexture.active;
+
+        RenderTexture.active = rt;
+
+        tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+        tex.Apply();
+
+        //if (Application.isPlaying)
+        //    Object.Destroy(tex);
+        //else
+        //    Object.DestroyImmediate(tex);
+        RenderTexture.active = oldRt;
+
+        return tex;
     }
     #endregion
 }
