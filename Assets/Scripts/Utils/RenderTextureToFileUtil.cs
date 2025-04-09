@@ -58,6 +58,10 @@ public class RenderTextureToFileUtil
             Object.Destroy(tex);
         else
             Object.DestroyImmediate(tex);
+    }
+
+    static public void WriteRenderTextureToTex2D(RenderTexture rt)
+    {
 
     }
 }
