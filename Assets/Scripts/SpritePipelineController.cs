@@ -19,16 +19,17 @@ public class SpritePipelineController : MonoBehaviour
 
     [Header("3D Animation Assets")]
     [SerializeField] private Animator _animatorComponent;
-    [SerializeField] private List<AnimationClip> _targetClips;
+    // [SerializeField] private List<AnimationClip> _targetClips;
+    [SerializeField] private AnimationClip _targetClip;
 
     // public facing getters, mostly for UI
     public RenderTexture currentRenderTexture { get { return _sideRenderCamera.targetTexture; } }
 
     // runtime variables
-    private List<float[]> keyframeTimes = null;
-    private int _currentClipIndex;
+    // private List<float[]> keyframeTimes = null;
+    float[] cachedKeyframeTimes = null;
     private int _currentFrameIndex;
-    private int _currentClipKeyframes;
+    private int _numFrames;
 
     #region Unity Callbacks
     private void Awake()
@@ -52,18 +53,13 @@ public class SpritePipelineController : MonoBehaviour
         _sideRenderCamera.gameObject.SetActive(true);
 
         // reset clip and frame indices
-        SetTargetClip(0);
         _currentFrameIndex = 0;
         _animatorComponent.speed = 0f;
+        SetAnimationAndKeyframe(_targetClip, cachedKeyframeTimes[_currentFrameIndex]);
     }
 
     private void Update()
     {
-        //if (Input.GetKeyDown(KeyCode.RightArrow))
-        //{
-        //    AdvanceKeyframe(_targetClips[0]);
-        //}
-
         if (Input.GetKeyDown(KeyCode.Space))
         {
             RenderAllKeyframes();
@@ -82,10 +78,11 @@ public class SpritePipelineController : MonoBehaviour
 
         List<Texture2D> capturedFrames = new List<Texture2D>();
         
-        for (int i = 0; i < _currentClipKeyframes; ++i)
+        for (int i = 0; i < _numFrames; ++i)
         {
             capturedFrames.Add(WriteRenderTextureToTex2D(rt, SaveTextureFileFormat.PNG));
-            AdvanceKeyframe(_targetClips[0]);
+            // AdvanceKeyframe(_targetClips[0]);
+            AdvanceKeyframe(_targetClip);
         }
 
         RenderToSingleImage(capturedFrames, fileNameStr);
@@ -95,36 +92,38 @@ public class SpritePipelineController : MonoBehaviour
     #region Private Helper Methods
     private void CacheKeyframesForAllClips()
     {
-        keyframeTimes = new List<float[]>();
+        // keyframeTimes = new List<float[]>();
+        //foreach (AnimationClip clip in _targetClips)
+        //{
+        //    keyframeTimes.Add(KeyframeUtils.CacheAnimationKeyframes(clip));
+        //}
 
-        foreach (AnimationClip clip in _targetClips)
-        {
-            keyframeTimes.Add(KeyframeUtils.CacheAnimationKeyframes(clip));
-        }
+        cachedKeyframeTimes = KeyframeUtils.CacheAnimationKeyframes(_targetClip);
+        _numFrames = cachedKeyframeTimes.Length;
     }
 
-    private void SetTargetClip(int index)
-    {
-        if (index < 0 || index >= _targetClips.Count) 
-        {
-            Debug.LogError("invalid index");
-            return; 
-        }
+    //private void SetTargetClip(int index)
+    //{
+    //    if (index < 0 || index >= _targetClips.Count) 
+    //    {
+    //        Debug.LogError("invalid index");
+    //        return; 
+    //    }
 
-        // reset all clip and keyframe counters
-        _currentClipIndex = index;
-        _currentClipKeyframes = keyframeTimes[_currentClipIndex].Length;
-        _currentFrameIndex = 0;
-        float keyframeTime = keyframeTimes[_currentClipIndex][_currentFrameIndex];
+    //    // reset all clip and keyframe counters
+    //    _currentClipIndex = index;
+    //    _currentClipKeyframes = keyframeTimes[_currentClipIndex].Length;
+    //    _currentFrameIndex = 0;
+    //    float keyframeTime = keyframeTimes[_currentClipIndex][_currentFrameIndex];
 
-        SetAnimationAndKeyframe(_targetClips[_currentClipIndex], keyframeTime);
-    }
+    //    SetAnimationAndKeyframe(_targetClips[_currentClipIndex], keyframeTime);
+    //}
 
     private void AdvanceKeyframe(AnimationClip clip)
     {
-        _currentFrameIndex = Mathf.Min(_currentFrameIndex + 1, _currentClipKeyframes - 1);
+        _currentFrameIndex = Mathf.Min(_currentFrameIndex + 1, _numFrames - 1);
 
-        float keyframeTime = keyframeTimes[_currentClipIndex][_currentFrameIndex];
+        float keyframeTime = cachedKeyframeTimes[_currentFrameIndex];
         SetAnimationAndKeyframe(clip, keyframeTime);
     }
 
