@@ -41,52 +41,52 @@ public class RenderTextureToFileUtil
     /// <param name="filePath"></param>
     /// <param name="fileFormat"></param>
     /// <param name="jpgQuality"></param>
-    static public void SaveRenderTextureToFile(RenderTexture renderTexture, string filePath, SaveTextureFileFormat fileFormat = SaveTextureFileFormat.PNG, int jpgQuality = 95)
-    {
-        //Texture2D tex;
-        //if (fileFormat != SaveTextureFileFormat.EXR)
-        //    tex = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false, false);
-        //else
-        //    tex = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBAFloat, false, true);
-        //var oldRt = RenderTexture.active;
-        //RenderTexture.active = renderTexture;
-        //tex.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-        //tex.Apply();
-        //RenderTexture.active = oldRt;
+    //static public void SaveRenderTextureToFile(RenderTexture renderTexture, string filePath, SaveTextureFileFormat fileFormat = SaveTextureFileFormat.PNG, int jpgQuality = 95)
+    //{
+    //    //Texture2D tex;
+    //    //if (fileFormat != SaveTextureFileFormat.EXR)
+    //    //    tex = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false, false);
+    //    //else
+    //    //    tex = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBAFloat, false, true);
+    //    //var oldRt = RenderTexture.active;
+    //    //RenderTexture.active = renderTexture;
+    //    //tex.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+    //    //tex.Apply();
+    //    //RenderTexture.active = oldRt;
         
-        var outTex = WriteRenderTextureToTex2D(renderTexture, fileFormat);
+    //    var outTex = WriteRenderTextureToTex2D(renderTexture, fileFormat);
         
-        SaveTexture2DToFile(outTex, filePath, fileFormat, jpgQuality);
+    //    SaveTexture2DToFile(outTex, filePath, fileFormat, jpgQuality);
 
-        if (Application.isPlaying)
-            Object.Destroy(outTex);
-        else
-            Object.DestroyImmediate(outTex);
-    }
+    //    if (Application.isPlaying)
+    //        Object.Destroy(outTex);
+    //    else
+    //        Object.DestroyImmediate(outTex);
+    //}
 
-    static public Texture2D WriteRenderTextureToTex2D(RenderTexture rt, 
-        SaveTextureFileFormat fileFormat = SaveTextureFileFormat.PNG)
-    {
-        Texture2D tex;
+    //static public Texture2D WriteRenderTextureToTex2D(RenderTexture rt, 
+    //    SaveTextureFileFormat fileFormat = SaveTextureFileFormat.PNG)
+    //{
+    //    Texture2D tex;
 
-        if (fileFormat != SaveTextureFileFormat.EXR)
-            tex = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false, false);
-        else
-            tex = new Texture2D(rt.width, rt.height, TextureFormat.RGBAFloat, false, true);
+    //    if (fileFormat != SaveTextureFileFormat.EXR)
+    //        tex = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false, false);
+    //    else
+    //        tex = new Texture2D(rt.width, rt.height, TextureFormat.RGBAFloat, false, true);
 
-        var oldRt = RenderTexture.active;
+    //    var oldRt = RenderTexture.active;
 
-        RenderTexture.active = rt;
+    //    RenderTexture.active = rt;
 
-        tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
-        tex.Apply();
+    //    tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+    //    tex.Apply();
 
-        if (Application.isPlaying)
-            Object.Destroy(tex);
-        else
-            Object.DestroyImmediate(tex);
-        RenderTexture.active = oldRt;
+    //    if (Application.isPlaying)
+    //        Object.Destroy(tex);
+    //    else
+    //        Object.DestroyImmediate(tex);
+    //    RenderTexture.active = oldRt;
 
-        return tex;
-    }
+    //    return tex;
+    //}
 }

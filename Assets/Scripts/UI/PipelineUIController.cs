@@ -8,7 +8,7 @@ public class PipelineUIController : MonoBehaviour
     
     public void OnPressRenderButton()
     {
-        controllerRef.RenderToSprite();
+        controllerRef.RenderAllKeyframes();
     }
 
     private void Start()

@@ -8,9 +8,12 @@ public class SpritePipelineController : MonoBehaviour
     // todo: make this a list of cameras, corresponding to the number of perspective types
     [SerializeField] private Camera _sideRenderCamera;
 
-    [Header("Sprite Settings")]
+    [Header("2D Render Settings")]
     [SerializeField] private Vector2Int _outResolution = new Vector2Int(256, 256);
     [SerializeField] private int _outDepth = 32;
+
+    [Header("Sprite Sheet Output Settings")]
+    [SerializeField] private int maxSpriteSheetWidth = 10;
     [SerializeField] private string _spriteName;
     [SerializeField] private bool _appendDateTime = true;
 
@@ -63,13 +66,13 @@ public class SpritePipelineController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            RenderToSprite();
+            RenderAllKeyframes();
         }
     }
     #endregion
 
     #region Public-facing methods
-    public void RenderToSprite()
+    public void RenderAllKeyframes()
     {
         string dateTimeStr = _appendDateTime ? 
             "_" + System.DateTime.Now.ToString("MM_dd_HH_mm") : "";
@@ -77,37 +80,15 @@ public class SpritePipelineController : MonoBehaviour
 
         RenderTexture rt = _sideRenderCamera.targetTexture;
 
-        //// if there are any clips, do the thing
-        //if (_targetClips.Count > 0)
-        //{
-        //    var keyframes = KeyframeUtils.CacheAnimationKeyframes(_targetClips[0]);
-
-        //    foreach (var keyframe in keyframes)
-        //    {
-        //        Debug.LogErrorFormat("Keyframe for clip {0}: {1}", _targetClips[0].name, keyframe);
-        //    }
-            
-        //    // todo: go through all clips. this can be replaced with a single for loop instead of an if.
-        //}
-
-        // todo: comment back in
-        // RenderTextureToFileUtil.SaveRenderTextureToFile(rt, fileNameStr, RenderTextureToFileUtil.SaveTextureFileFormat.PNG);
         List<Texture2D> capturedFrames = new List<Texture2D>();
         
         for (int i = 0; i < _currentClipKeyframes; ++i)
         {
             capturedFrames.Add(WriteRenderTextureToTex2D(rt, SaveTextureFileFormat.PNG));
-            // Debug.LogFormat("Keframe index {0}", i);
             AdvanceKeyframe(_targetClips[0]);
         }
 
-        int counter = 0;
-        foreach(var tex in capturedFrames)
-        {
-            RenderTextureToFileUtil.SaveTexture2DToFile(tex, fileNameStr + string.Format("_{0}", counter), SaveTextureFileFormat.PNG);
-            counter++;
-        }
-        // Debug.Log("Wrote texture to file " + fileNameStr);
+        RenderToSingleImage(capturedFrames, fileNameStr);
     }
     #endregion
 
@@ -144,8 +125,6 @@ public class SpritePipelineController : MonoBehaviour
         _currentFrameIndex = Mathf.Min(_currentFrameIndex + 1, _currentClipKeyframes - 1);
 
         float keyframeTime = keyframeTimes[_currentClipIndex][_currentFrameIndex];
-        //_animatorComponent.Play(clip.name, 0, keyframeTime / clip.length);
-        //_animatorComponent.Update(0);
         SetAnimationAndKeyframe(clip, keyframeTime);
     }
 
@@ -153,6 +132,53 @@ public class SpritePipelineController : MonoBehaviour
     {
         _animatorComponent.Play(clip.name, 0, keyframeTime / clip.length);
         _animatorComponent.Update(0);
+    }
+
+    private void RenderToSingleImage(List<Texture2D> capturedFrames, string fileNameStr)
+    {
+        // combine all textures into a grid
+        int frames = capturedFrames.Count;
+
+        int sheetColumns = Mathf.Min(frames, maxSpriteSheetWidth);
+        int sheetRows = Mathf.CeilToInt((float)frames / sheetColumns);
+
+        // this may be greater than the actual number of frames
+        int numSprites = sheetColumns * sheetRows;
+
+        Texture2D combinedTexture = new Texture2D(_outResolution.x * sheetColumns, _outResolution.y * sheetRows);
+        int spriteSheetHeight = combinedTexture.height;
+
+        Color[] emptyPixels = new Color[_outResolution.x * _outResolution.y];
+
+        for (int i = 0; i < emptyPixels.Length; ++i)
+            emptyPixels[i] = new Color(0, 0, 0, 0);
+
+        for (int i = 0; i < numSprites; ++i)
+        {
+            int xPos = (i % sheetColumns) * _outResolution.x;
+            int yPos = (i / sheetColumns) * _outResolution.y;
+
+            Color[] pixels;
+
+            if (i < frames)
+            {
+                //int xPos = (i % sheetColumns) * _outResolution.x;
+                //int yPos = (i / sheetColumns) * _outResolution.y;
+
+                pixels = capturedFrames[i].GetPixels();
+            }
+            else
+            {
+                pixels = emptyPixels;
+            }
+
+            combinedTexture.SetPixels(xPos, spriteSheetHeight - yPos - _outResolution.y, _outResolution.x, _outResolution.y, pixels);
+        }
+
+        combinedTexture.Apply();
+
+        RenderTextureToFileUtil.SaveTexture2DToFile(combinedTexture, fileNameStr, SaveTextureFileFormat.PNG);
+        Debug.LogErrorFormat("Rendered sprite sheet to {0}.png", fileNameStr);
     }
 
     static private Texture2D WriteRenderTextureToTex2D(RenderTexture rt,
@@ -172,14 +198,9 @@ public class SpritePipelineController : MonoBehaviour
         tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
         tex.Apply();
 
-        //if (Application.isPlaying)
-        //    Object.Destroy(tex);
-        //else
-        //    Object.DestroyImmediate(tex);
         RenderTexture.active = oldRt;
 
         return tex;
     }
     #endregion
 }
-
