@@ -1,6 +1,6 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using static RenderTextureToFileUtil;
 
 public class SpritePipelineController : MonoBehaviour
@@ -62,7 +62,8 @@ public class SpritePipelineController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            RenderAllKeyframes();
+            // RenderAllKeyframes();
+            StartCoroutine(RenderKeyframesCoroutine());
         }
     }
     #endregion
@@ -82,6 +83,29 @@ public class SpritePipelineController : MonoBehaviour
         {
             capturedFrames.Add(WriteRenderTextureToTex2D(rt, SaveTextureFileFormat.PNG));
             // AdvanceKeyframe(_targetClips[0]);
+            AdvanceKeyframe(_targetClip);
+        }
+
+        RenderToSingleImage(capturedFrames, fileNameStr);
+    }
+
+    public IEnumerator RenderKeyframesCoroutine()
+    {
+        string dateTimeStr = _appendDateTime ?
+            "_" + System.DateTime.Now.ToString("MM_dd_HH_mm") : "";
+        string fileNameStr = "Assets/Output/" + _spriteName + dateTimeStr;
+
+        RenderTexture rt = _sideRenderCamera.targetTexture;
+
+        List<Texture2D> capturedFrames = new List<Texture2D>();
+
+        for (int i = 0; i < _numFrames; ++i)
+        {
+            _sideRenderCamera.Render();
+            capturedFrames.Add(WriteRenderTextureToTex2D(rt, SaveTextureFileFormat.PNG));
+
+            yield return new WaitForEndOfFrame();
+
             AdvanceKeyframe(_targetClip);
         }
 
