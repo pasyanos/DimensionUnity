@@ -55,17 +55,25 @@ public class SpritePipelineController : MonoBehaviour
         SetAnimationAndKeyframe(_targetClips[currentClipIndex], keyframeTimes[currentClipIndex][currentFrameIndex]);
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            StartCoroutine(RenderKeyframesCoroutine());
-        }
-    }
+    //private void Update()
+    //{
+    //    if (Input.GetKeyDown(KeyCode.Space))
+    //    {
+    //        StartCoroutine(RenderKeyframesCoroutine());
+    //    }
+    //}
     #endregion
 
     #region Public-facing methods
-    public IEnumerator RenderKeyframesCoroutine()
+    public void OnGUIButton()
+    {
+        // Debug.LogError(":)");
+        StartCoroutine(RenderKeyframesCoroutine());
+    }
+    #endregion
+
+    #region Private Helper Methods
+    private IEnumerator RenderKeyframesCoroutine()
     {
         string dateTimeStr = _appendDateTime ?
             "_" + System.DateTime.Now.ToString("MM_dd_HH_mm") : "";
@@ -82,15 +90,13 @@ public class SpritePipelineController : MonoBehaviour
 
             // reset animation
             SetAnimationAndKeyframe(clip, keyframeTimes[i][currentFrameIndex]);
-            
+
             List<Texture2D> framesForClip = new List<Texture2D>();
             yield return RenderFramesForSingleClip(framesForClip, clip, i, rt, _sideRenderCamera);
             RenderToSingleImage(framesForClip, fileNameStr + string.Format("_{0}", clip.name));
         }
     }
-    #endregion
 
-    #region Private Helper Methods
     private IEnumerator RenderFramesForSingleClip(List<Texture2D> outputFrames, 
         AnimationClip clip, int clipIndex, RenderTexture rt, Camera renderCam)
     {
