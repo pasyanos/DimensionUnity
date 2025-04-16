@@ -21,7 +21,7 @@ public class KeyframeUtils
         // sort hashset by ascending time
         var ret = timingsSet.OrderBy(t => t).ToArray();
 
-        Debug.LogErrorFormat("Animation Clip {0}: {1} keyframes", clip.name, ret.Length);
+        Debug.LogFormat("Animation Clip {0}: {1} keyframes", clip.name, ret.Length);
 
         return ret;
     }

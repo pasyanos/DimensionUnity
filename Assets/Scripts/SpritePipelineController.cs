@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEditor.Animations;
 using System.Collections;
 using System.Collections.Generic;
 using static RenderTextureToFileUtil;
@@ -15,8 +16,6 @@ public class SpritePipelineController : MonoBehaviour
     [SerializeField] private int maxSpriteSheetWidth = 10;
     [SerializeField] private string _spriteName;
     [SerializeField] private bool _appendDateTime = true;
-    // todo: expose this to the user once both are supported
-    // private bool seperateSpriteSheetsPerClip = true;
 
     [Header("3D Animation Assets")]
     [SerializeField] private Animator _animatorComponent;
@@ -33,7 +32,7 @@ public class SpritePipelineController : MonoBehaviour
     #region Unity Callbacks
     private void Awake()
     {
-        // make a new rendertexture
+        // make a new rendertexture and assign it to the side camera
         RenderTexture sideCamOutput = new RenderTexture(_outResolution.x, _outResolution.y, _outDepth);
         sideCamOutput.name = "SideCamOutput";
         sideCamOutput.enableRandomWrite = true;
@@ -51,8 +50,6 @@ public class SpritePipelineController : MonoBehaviour
         _sideRenderCamera.gameObject.SetActive(true);
 
         // reset clip and frame indices
-        //currentClipIndex = 0;
-        //currentFrameIndex = 0;
         SetClipIndex(0);
         _animatorComponent.speed = 0f;
         SetAnimationAndKeyframe(_targetClips[currentClipIndex], keyframeTimes[currentClipIndex][currentFrameIndex]);
@@ -62,7 +59,6 @@ public class SpritePipelineController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            // RenderAllKeyframes();
             StartCoroutine(RenderKeyframesCoroutine());
         }
     }
@@ -83,8 +79,9 @@ public class SpritePipelineController : MonoBehaviour
         {
             SetClipIndex(i);
             AnimationClip clip = _targetClips[i];
+
             // reset animation
-            SetAnimationAndKeyframe(clip, 0);
+            SetAnimationAndKeyframe(clip, keyframeTimes[i][currentFrameIndex]);
             
             List<Texture2D> framesForClip = new List<Texture2D>();
             yield return RenderFramesForSingleClip(framesForClip, clip, i, rt, _sideRenderCamera);
@@ -110,7 +107,7 @@ public class SpritePipelineController : MonoBehaviour
             AdvanceKeyframe(clip, numFrames);
         }
 
-        Debug.LogErrorFormat("Finished rendering for animation clip {0}", clip.name);
+        Debug.LogFormat("Finished rendering for animation clip {0}", clip.name);
     }
 
     private void CacheKeyframesForAllClips()
@@ -121,9 +118,6 @@ public class SpritePipelineController : MonoBehaviour
         {
             keyframeTimes.Add(KeyframeUtils.CacheAnimationKeyframes(clip));
         }
-
-        // keyframeTimes.Add(KeyframeUtils.CacheAnimationKeyframes(_targetClip));
-        // _numFrames = cachedKeyframeTimes.Length;
     }
 
     private void SetClipIndex(int index)
@@ -131,6 +125,7 @@ public class SpritePipelineController : MonoBehaviour
         if (index >= 0 && index < _targetClips.Count)
         {
             currentClipIndex = index;
+
             // begin at frame 0
             currentFrameIndex = 0;
         }
@@ -178,9 +173,6 @@ public class SpritePipelineController : MonoBehaviour
 
             if (i < frames)
             {
-                //int xPos = (i % sheetColumns) * _outResolution.x;
-                //int yPos = (i / sheetColumns) * _outResolution.y;
-
                 pixels = capturedFrames[i].GetPixels();
             }
             else
@@ -194,7 +186,7 @@ public class SpritePipelineController : MonoBehaviour
         combinedTexture.Apply();
 
         RenderTextureToFileUtil.SaveTexture2DToFile(combinedTexture, fileNameStr, SaveTextureFileFormat.PNG);
-        Debug.LogErrorFormat("Rendered sprite sheet to {0}.png", fileNameStr);
+        Debug.LogFormat("Rendered sprite sheet to {0}.png", fileNameStr);
     }
 
     static private Texture2D WriteRenderTextureToTex2D(RenderTexture rt,
