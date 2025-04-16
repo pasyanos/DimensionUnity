@@ -5,7 +5,6 @@ using static RenderTextureToFileUtil;
 
 public class SpritePipelineController : MonoBehaviour
 {
-    // todo: make this a list of cameras, corresponding to the number of perspective types
     [SerializeField] private Camera _sideRenderCamera;
 
     [Header("2D Render Settings")]
@@ -16,20 +15,22 @@ public class SpritePipelineController : MonoBehaviour
     [SerializeField] private int maxSpriteSheetWidth = 10;
     [SerializeField] private string _spriteName;
     [SerializeField] private bool _appendDateTime = true;
+    // todo: expose this to the user once both are supported
+    // private bool seperateSpriteSheetsPerClip = true;
 
     [Header("3D Animation Assets")]
     [SerializeField] private Animator _animatorComponent;
-    // [SerializeField] private List<AnimationClip> _targetClips;
-    [SerializeField] private AnimationClip _targetClip;
+    [SerializeField] private List<AnimationClip> _targetClips;
+    // [SerializeField] private AnimationClip _targetClip;
 
     // public facing getters, mostly for UI
     public RenderTexture currentRenderTexture { get { return _sideRenderCamera.targetTexture; } }
 
     // runtime variables
-    // private List<float[]> keyframeTimes = null;
-    float[] cachedKeyframeTimes = null;
-    private int _currentFrameIndex;
-    private int _numFrames;
+    private int currentClipIndex = 0;
+    private List<float[]> keyframeTimes = new List<float[]>();
+    // float[] cachedKeyframeTimes = null;
+    private int currentFrameIndex;
 
     #region Unity Callbacks
     private void Awake()
@@ -42,7 +43,6 @@ public class SpritePipelineController : MonoBehaviour
 
         // assign the rendertexture to the camera
         _sideRenderCamera.targetTexture = sideCamOutput;
-
     }
 
     private void Start()
@@ -53,9 +53,10 @@ public class SpritePipelineController : MonoBehaviour
         _sideRenderCamera.gameObject.SetActive(true);
 
         // reset clip and frame indices
-        _currentFrameIndex = 0;
+        currentClipIndex = 0;
+        currentFrameIndex = 0;
         _animatorComponent.speed = 0f;
-        SetAnimationAndKeyframe(_targetClip, cachedKeyframeTimes[_currentFrameIndex]);
+        SetAnimationAndKeyframe(_targetClips[currentClipIndex], keyframeTimes[currentClipIndex][currentFrameIndex]);
     }
 
     private void Update()
@@ -69,26 +70,6 @@ public class SpritePipelineController : MonoBehaviour
     #endregion
 
     #region Public-facing methods
-    public void RenderAllKeyframes()
-    {
-        string dateTimeStr = _appendDateTime ? 
-            "_" + System.DateTime.Now.ToString("MM_dd_HH_mm") : "";
-        string fileNameStr = "Assets/Output/" + _spriteName + dateTimeStr;
-
-        RenderTexture rt = _sideRenderCamera.targetTexture;
-
-        List<Texture2D> capturedFrames = new List<Texture2D>();
-        
-        for (int i = 0; i < _numFrames; ++i)
-        {
-            capturedFrames.Add(WriteRenderTextureToTex2D(rt, SaveTextureFileFormat.PNG));
-            // AdvanceKeyframe(_targetClips[0]);
-            AdvanceKeyframe(_targetClip);
-        }
-
-        RenderToSingleImage(capturedFrames, fileNameStr);
-    }
-
     public IEnumerator RenderKeyframesCoroutine()
     {
         string dateTimeStr = _appendDateTime ?
@@ -97,57 +78,72 @@ public class SpritePipelineController : MonoBehaviour
 
         RenderTexture rt = _sideRenderCamera.targetTexture;
 
-        List<Texture2D> capturedFrames = new List<Texture2D>();
+        // List<Texture2D> capturedFrames = new List<Texture2D>();
+        //int numFrames = keyframeTimes[0].Length;
+        //for (int i = 0; i < numFrames; ++i)
+        //{
+        //    _sideRenderCamera.Render();
+        //    capturedFrames.Add(WriteRenderTextureToTex2D(rt, SaveTextureFileFormat.PNG));
 
-        for (int i = 0; i < _numFrames; ++i)
+        //    yield return new WaitForEndOfFrame();
+
+        //    AdvanceKeyframe(_targetClip, numFrames);
+        //}
+        int numClips = _targetClips.Count;
+
+        for (int i = 0; i < numClips; ++i)
         {
-            _sideRenderCamera.Render();
-            capturedFrames.Add(WriteRenderTextureToTex2D(rt, SaveTextureFileFormat.PNG));
-
-            yield return new WaitForEndOfFrame();
-
-            AdvanceKeyframe(_targetClip);
+            AnimationClip clip = _targetClips[i];
+            // reset animation
+            SetAnimationAndKeyframe(clip, 0);
+            
+            List<Texture2D> framesForClip = new List<Texture2D>();
+            yield return RenderFramesForSingleClip(framesForClip, clip, i, rt, _sideRenderCamera);
+            RenderToSingleImage(framesForClip, fileNameStr + string.Format("_{0}", clip.name));
         }
 
-        RenderToSingleImage(capturedFrames, fileNameStr);
+        // RenderToSingleImage(capturedFrames, fileNameStr);
     }
     #endregion
 
     #region Private Helper Methods
-    private void CacheKeyframesForAllClips()
+    private IEnumerator RenderFramesForSingleClip(List<Texture2D> outputFrames, 
+        AnimationClip clip, int clipIndex, RenderTexture rt, Camera renderCam)
     {
-        // keyframeTimes = new List<float[]>();
-        //foreach (AnimationClip clip in _targetClips)
-        //{
-        //    keyframeTimes.Add(KeyframeUtils.CacheAnimationKeyframes(clip));
-        //}
+        int numFrames = keyframeTimes[clipIndex].Length;
 
-        cachedKeyframeTimes = KeyframeUtils.CacheAnimationKeyframes(_targetClip);
-        _numFrames = cachedKeyframeTimes.Length;
+        for (int i = 0; i < numFrames; ++i)
+        {
+            // todo: may not be necessary
+            renderCam.Render();
+            outputFrames.Add(WriteRenderTextureToTex2D(rt, SaveTextureFileFormat.PNG));
+
+            yield return new WaitForEndOfFrame();
+
+            AdvanceKeyframe(clip, numFrames);
+        }
+
+        Debug.LogErrorFormat("Finished rendering for animation clip {0}", clip.name);
     }
 
-    //private void SetTargetClip(int index)
-    //{
-    //    if (index < 0 || index >= _targetClips.Count) 
-    //    {
-    //        Debug.LogError("invalid index");
-    //        return; 
-    //    }
-
-    //    // reset all clip and keyframe counters
-    //    _currentClipIndex = index;
-    //    _currentClipKeyframes = keyframeTimes[_currentClipIndex].Length;
-    //    _currentFrameIndex = 0;
-    //    float keyframeTime = keyframeTimes[_currentClipIndex][_currentFrameIndex];
-
-    //    SetAnimationAndKeyframe(_targetClips[_currentClipIndex], keyframeTime);
-    //}
-
-    private void AdvanceKeyframe(AnimationClip clip)
+    private void CacheKeyframesForAllClips()
     {
-        _currentFrameIndex = Mathf.Min(_currentFrameIndex + 1, _numFrames - 1);
+        keyframeTimes.Clear();
+        // keyframeTimes = new List<float[]>();
+        foreach (AnimationClip clip in _targetClips)
+        {
+            keyframeTimes.Add(KeyframeUtils.CacheAnimationKeyframes(clip));
+        }
 
-        float keyframeTime = cachedKeyframeTimes[_currentFrameIndex];
+        // keyframeTimes.Add(KeyframeUtils.CacheAnimationKeyframes(_targetClip));
+        // _numFrames = cachedKeyframeTimes.Length;
+    }
+
+    private void AdvanceKeyframe(AnimationClip clip, int numFrames)
+    {
+        currentFrameIndex = Mathf.Min(currentFrameIndex + 1, numFrames - 1);
+
+        float keyframeTime = keyframeTimes[0][currentFrameIndex];
         SetAnimationAndKeyframe(clip, keyframeTime);
     }
 
