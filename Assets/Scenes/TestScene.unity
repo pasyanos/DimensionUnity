@@ -1485,7 +1485,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _sideRenderCamera: {fileID: 873466496}
-  _outResolution: {x: 256, y: 256}
+  _outResolution: {x: 128, y: 128}
   _outDepth: 32
   maxSpriteSheetWidth: 10
   _spriteName: DogKnight
