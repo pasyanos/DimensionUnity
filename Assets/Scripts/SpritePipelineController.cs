@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEditor.Animations;
 using System.Collections;
 using System.Collections.Generic;
-using static RenderTextureToFileUtil;
+// using static RenderTextureToFileUtil;
 
 public class SpritePipelineController : MonoBehaviour
 {
@@ -54,14 +54,6 @@ public class SpritePipelineController : MonoBehaviour
         _animatorComponent.speed = 0f;
         SetAnimationAndKeyframe(_targetClips[currentClipIndex], keyframeTimes[currentClipIndex][currentFrameIndex]);
     }
-
-    //private void Update()
-    //{
-    //    if (Input.GetKeyDown(KeyCode.Space))
-    //    {
-    //        StartCoroutine(RenderKeyframesCoroutine());
-    //    }
-    //}
     #endregion
 
     #region Public-facing methods
@@ -106,7 +98,7 @@ public class SpritePipelineController : MonoBehaviour
         {
             // todo: may not be necessary
             renderCam.Render();
-            outputFrames.Add(WriteRenderTextureToTex2D(rt, SaveTextureFileFormat.PNG));
+            outputFrames.Add(WriteRenderTextureToTex2D(rt, Utils.SaveTextureFileFormat.PNG));
 
             yield return new WaitForEndOfFrame();
 
@@ -122,7 +114,7 @@ public class SpritePipelineController : MonoBehaviour
         // keyframeTimes = new List<float[]>();
         foreach (AnimationClip clip in _targetClips)
         {
-            keyframeTimes.Add(KeyframeUtils.CacheAnimationKeyframes(clip));
+            keyframeTimes.Add(Utils.CacheAnimationKeyframes(clip));
         }
     }
 
@@ -191,16 +183,16 @@ public class SpritePipelineController : MonoBehaviour
 
         combinedTexture.Apply();
 
-        RenderTextureToFileUtil.SaveTexture2DToFile(combinedTexture, fileNameStr, SaveTextureFileFormat.PNG);
+        Utils.SaveTexture2DToFile(combinedTexture, fileNameStr, Utils.SaveTextureFileFormat.PNG);
         Debug.LogFormat("Rendered sprite sheet to {0}.png", fileNameStr);
     }
 
     static private Texture2D WriteRenderTextureToTex2D(RenderTexture rt,
-        SaveTextureFileFormat fileFormat = SaveTextureFileFormat.PNG)
+        Utils.SaveTextureFileFormat fileFormat = Utils.SaveTextureFileFormat.PNG)
     {
         Texture2D tex;
 
-        if (fileFormat != SaveTextureFileFormat.EXR)
+        if (fileFormat != Utils.SaveTextureFileFormat.EXR)
             tex = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false, false);
         else
             tex = new Texture2D(rt.width, rt.height, TextureFormat.RGBAFloat, false, true);
