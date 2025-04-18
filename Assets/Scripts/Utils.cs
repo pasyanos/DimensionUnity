@@ -41,7 +41,7 @@ public class Utils
     #region Keyframe Reading Utils
     public static float[] CacheAnimationKeyframes(AnimationClip clip)
     {
-        Debug.LogErrorFormat("Animation frame has speed of {0} FPS with a length of {1}", 
+        Debug.LogErrorFormat("Animation frame has speed of {0} FPS with a length of {1} ALSO FACTOR THIS OUT", 
             clip.frameRate, clip.length);
         
         var bindings = AnimationUtility.GetCurveBindings(clip);

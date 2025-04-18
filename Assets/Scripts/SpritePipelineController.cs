@@ -13,6 +13,7 @@ public class SpritePipelineController : MonoBehaviour
     [SerializeField] private int _outDepth = 32;
 
     [Header("Sprite Sheet Output Settings")]
+    [SerializeField] private float targetFPS = 30;
     [SerializeField] private int maxSpriteSheetWidth = 10;
     [SerializeField] private string _spriteName;
     [SerializeField] private bool _appendDateTime = true;
@@ -26,7 +27,11 @@ public class SpritePipelineController : MonoBehaviour
 
     // runtime variables
     private int currentClipIndex = 0;
+    // todo: factor out
     private List<float[]> keyframeTimes = new List<float[]>();
+    private List<AnimationClipInfo> cachedFrameInfo = new List<AnimationClipInfo>();
+    private float animationTime = 0f;
+    // todo: factor out
     private int currentFrameIndex;
 
     #region Unity Callbacks
@@ -59,7 +64,6 @@ public class SpritePipelineController : MonoBehaviour
     #region Public-facing methods
     public void OnGUIButton()
     {
-        // Debug.LogError(":)");
         StartCoroutine(RenderKeyframesCoroutine());
     }
     #endregion
@@ -73,7 +77,7 @@ public class SpritePipelineController : MonoBehaviour
 
         RenderTexture rt = _sideRenderCamera.targetTexture;
 
-        int numClips = _targetClips.Count;
+        int numClips = cachedFrameInfo.Count;
 
         for (int i = 0; i < numClips; ++i)
         {
@@ -96,7 +100,7 @@ public class SpritePipelineController : MonoBehaviour
 
         for (int i = 0; i < numFrames; ++i)
         {
-            // todo: may not be necessary
+            // Force camera render - this may not be necessary
             renderCam.Render();
             outputFrames.Add(WriteRenderTextureToTex2D(rt, Utils.SaveTextureFileFormat.PNG));
 
@@ -110,10 +114,14 @@ public class SpritePipelineController : MonoBehaviour
 
     private void CacheKeyframesForAllClips()
     {
+        // todo factor out
         keyframeTimes.Clear();
-        // keyframeTimes = new List<float[]>();
+        cachedFrameInfo.Clear();
+        
         foreach (AnimationClip clip in _targetClips)
         {
+            cachedFrameInfo.Add(new AnimationClipInfo(clip, targetFPS));
+            // todo: factor out
             keyframeTimes.Add(Utils.CacheAnimationKeyframes(clip));
         }
     }
@@ -124,8 +132,10 @@ public class SpritePipelineController : MonoBehaviour
         {
             currentClipIndex = index;
 
-            // begin at frame 0
+            // begin at frame 0 n- todo factor out
             currentFrameIndex = 0;
+
+
         }
     }
 
