@@ -38,29 +38,24 @@ public class Utils
     }
     #endregion // Write texture utils
 
-    #region Keyframe Reading Utils
-    public static float[] CacheAnimationKeyframes(AnimationClip clip)
+    static public int GetKeyframeCount(AnimationClip clip, float targetFPS)
     {
-        Debug.LogErrorFormat("Animation frame has speed of {0} FPS with a length of {1} ALSO FACTOR THIS OUT", 
-            clip.frameRate, clip.length);
-        
-        var bindings = AnimationUtility.GetCurveBindings(clip);
-        var timingsSet = new HashSet<float>();
+        float len = clip.length;
+        float clipFPS = clip.frameRate;
 
-        // collect all timings in the hashset. Duplicates are not allowed.
-        foreach (var binding in bindings)
+        // deal with some edge cases where our target FPS doesn't equal the clip FPS
+        // but it's fine as long as the target can be divided by the clip FPS
+        if (targetFPS < clipFPS)
         {
-            var curve = AnimationUtility.GetEditorCurve(clip, binding);
-            foreach (var key in curve.keys)
-                timingsSet.Add(key.time);
+            Debug.LogWarningFormat("Target FPS of {0} is less than clip's FPS of {1}; " +
+                "some animation detail might be lost", targetFPS, clipFPS);
+        }
+        else if (targetFPS > clipFPS && targetFPS % clipFPS != 0)
+        {
+            Debug.LogWarningFormat("Target FPS of {0} is not divisible by clip FPS of {1};" +
+                " May cause strange artifacts or skip keyframes.", targetFPS, clipFPS);
         }
 
-        // sort hashset by ascending time
-        var ret = timingsSet.OrderBy(t => t).ToArray();
-
-        Debug.LogFormat("Animation Clip {0}: {1} keyframes", clip.name, ret.Length);
-
-        return ret;
+        return Mathf.RoundToInt(targetFPS * len) + 1;
     }
-    #endregion // Keyframe Reading Utils
 }

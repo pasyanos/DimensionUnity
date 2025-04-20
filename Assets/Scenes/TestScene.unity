@@ -1490,12 +1490,13 @@ MonoBehaviour:
   targetFPS: 30
   maxSpriteSheetWidth: 10
   _spriteName: Dog_Knight
-  _appendDateTime: 1
+  _appendDateTime: 0
   _animatorComponent: {fileID: 460294967}
   _targetClips:
   - {fileID: 7400000, guid: 6019f1b4a095b0b4396f5561a51fee89, type: 2}
   - {fileID: 7400000, guid: eccbae3cfc77ad245ade46e143aa3200, type: 2}
   - {fileID: 7400000, guid: 1588532e68f51a040bda71c68cfab177, type: 2}
+  - {fileID: 7400000, guid: cf357b5409b4ad54a82c45d7684564e1, type: 2}
 --- !u!4 &1563881707
 Transform:
   m_ObjectHideFlags: 0
