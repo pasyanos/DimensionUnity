@@ -18,6 +18,7 @@ public class SpritePipelineController : MonoBehaviour
     [SerializeField] private int maxSpriteSheetWidth = 10;
     [SerializeField] private string _spriteName;
     [SerializeField] private bool _appendDateTime = true;
+    // [SerializeField] private bool _combineSpriteSheets = true;
 
     [Header("3D Animation Assets")]
     [SerializeField] private Animator _animatorComponent;
