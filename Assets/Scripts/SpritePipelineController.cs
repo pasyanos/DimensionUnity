@@ -18,7 +18,6 @@ public class SpritePipelineController : MonoBehaviour
     [SerializeField] private int maxSpriteSheetWidth = 10;
     [SerializeField] private string _spriteName;
     [SerializeField] private bool _appendDateTime = true;
-    // [SerializeField] private bool _combineSpriteSheets = true;
 
     [Header("3D Animation Assets")]
     [SerializeField] private Animator _animatorComponent;
@@ -84,11 +83,9 @@ public class SpritePipelineController : MonoBehaviour
             AnimationClip clip = _targetClips[i];
             int numFrames = _clipFrameCounts[i];
 
-            // Debug.LogErrorFormat("Clip index {0} is called {1}, has {2} frames", i, clip.name, numFrames);
             SetClipIndex(i);
 
             SetAnimationAndKeyframe(clip, currentFrameIndex);
-            // yield return null;
 
             List<Texture2D> framesForClip = new List<Texture2D>();
             yield return RenderSingleClipFrames(framesForClip, clip, numFrames, _sideRenderCamera, rt);
@@ -102,17 +99,13 @@ public class SpritePipelineController : MonoBehaviour
     {
         for (int i = 0; i < numFrames; i++)
         {
-            // Debug.LogErrorFormat("Clip {0} {1}", clip.name, i);
-            
-            // may not be necessary
             targetCam.Render();
-            // make a texture2D cache of RT at this point
+
+            // make a texture2D cache of render texture at this point
             outFrames.Add(WriteRenderTextureToTex2D(targetTexture));
 
             yield return new WaitForEndOfFrame();
 
-            // advance keyframe before next render
-            // todo
             AdvanceKeyframe(clip, numFrames);
         }
     }
